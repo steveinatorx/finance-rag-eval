@@ -65,26 +65,10 @@ pipenv run python -m finance_rag_eval.cli query --question "What was the total r
 - **Answer Generation**: Uses extractive method (finds relevant sentences from retrieved chunks) - no LLM needed
 - **All processing**: Happens locally on your machine
 
-### Using Live LLMs (Optional Enhancement)
+### Using Live LLMs (Optional)
 
-To use OpenAI for better quality (requires API key):
+Requires `OPENAI_API_KEY` set in `.envrc` (see Configuration below):
 
-```bash
-# Set your API key
-export OPENAI_API_KEY=sk-...
-
-# Use LLM for generation
-pipenv run python -m finance_rag_eval.cli query --question "..." --use-llm
-
-# Or use OpenAI embeddings (set in .env)
-# EMBEDDING_MODEL=openai
-```
-
-**Setup**:
-1. Add your OpenAI API key to `.envrc` (see Configuration section below)
-2. Allow direnv: `direnv allow`
-
-**Usage**:
 ```bash
 # Use LLM for generation
 PYTHONPATH=src pipenv run python -m finance_rag_eval.cli query "What is the revenue?" --use-llm
@@ -93,10 +77,7 @@ PYTHONPATH=src pipenv run python -m finance_rag_eval.cli query "What is the reve
 PYTHONPATH=src EMBEDDING_MODEL=openai pipenv run python -m finance_rag_eval.cli build-index
 ```
 
-**When to use LLMs:**
-- **OpenAI Embeddings**: Better semantic understanding, especially for domain-specific terms
-- **LLM Generation**: More natural, coherent answers vs. extractive method
-- **Tradeoff**: Higher cost and latency, but better quality
+**Tradeoffs**: Better quality but higher cost/latency. Offline mode works well for most use cases.
 
 ### Evaluation
 
@@ -137,29 +118,8 @@ Then open http://localhost:3000 in your browser.
 
 ### Available Jobs
 
-1. **rag_offline_job**: Runs the complete offline RAG pipeline
-   - Ingests documents from `sample_docs/`
-   - Chunks documents
-   - Generates embeddings
-   - Builds FAISS index
-   - Evaluates on gold set
-
-2. **rag_sweep_job**: Runs hyperparameter sweep
-   - Evaluates across parameter matrix
-   - Generates performance plots
-
-### Assets Graph
-
-The pipeline consists of the following assets:
-
-- `docs_raw`: Raw documents loaded from sample docs
-- `docs_clean`: Cleaned documents
-- `chunks`: Document chunks
-- `embeddings`: Embedding vectors
-- `faiss_index`: FAISS index for retrieval
-- `eval_results`: Evaluation results
-- `sweep_results`: Sweep results CSV
-- `plots`: Generated visualization plots
+- **rag_offline_job**: Complete offline RAG pipeline (ingest → chunk → embed → index → evaluate)
+- **rag_sweep_job**: Hyperparameter sweep with plot generation
 
 See `docs/diagrams/dagster_assets.mmd` for the asset dependency graph.
 
@@ -187,13 +147,13 @@ See `docs/diagrams/rag_architecture.mmd` for detailed architecture diagram.
 
 ### Components
 
-1. **Ingestion** (`rag/ingestion.py`): Loads HTML/text documents with fallback text loader
-2. **Chunking** (`rag/chunking.py`): Fixed-size and recursive chunking strategies
-3. **Embeddings** (`rag/embeddings.py`): Sentence-transformers (default) or OpenAI embeddings
-4. **Indexing** (`rag/index.py`): FAISS index for efficient similarity search
-5. **Retrieval** (`rag/retrieval.py`): Cosine similarity or MMR retrieval
-6. **Reranking** (`rag/rerank.py`): Optional cross-encoder reranking
-7. **Generation** (`rag/generation.py`): LLM generation or extractive fallback
+- **Ingestion**: HTML/text document loading
+- **Chunking**: Multiple strategies (fixed, recursive, structure-aware, semantic, hybrid)
+- **Embeddings**: Sentence-transformers (default) or OpenAI
+- **Indexing**: FAISS for efficient similarity search
+- **Retrieval**: Cosine similarity or MMR
+- **Reranking**: Optional cross-encoder reranking
+- **Generation**: Extractive (default) or LLM-based
 
 ## Evaluation Methodology
 
@@ -201,170 +161,61 @@ Focus on **diagnostic system metrics**, not absolute correctness:
 
 ### Metrics
 
-1. **Context Recall Proxy**: Measures whether retrieved chunks contain answer spans from gold answers
-   - Heuristic: Percentage of key phrases from gold answer appearing in retrieved chunks
-   - **Why**: Ensures relevant information is retrieved
-
-2. **Faithfulness Proxy**: Measures whether generated answers are supported by retrieved context
-   - Heuristic: Percentage of answer sentences with sufficient word overlap with context
-   - **Why**: Prevents hallucination, ensures answers are grounded
-
-3. **Latency**: Measures retrieval and generation latency
-   - Metrics: P50 and P95 latency percentiles
-   - **Why**: Production systems need to be fast
-
-4. **Optional Cost Proxies**: Token counts if LLM enabled
-   - **Why**: Cost management for production
+- **Context Recall**: Percentage of key phrases from gold answers appearing in retrieved chunks (ensures relevant retrieval)
+- **Faithfulness**: Percentage of answer sentences supported by retrieved context (prevents hallucination)
+- **Latency**: P50/P95 percentiles for retrieval and generation (production speed requirements)
+- **Cost**: Token counts when LLM enabled (cost management)
 
 ### Gold Set
 
-The evaluation uses `src/finance_rag_eval/data/qa_gold.json` containing **13 question-answer pairs**:
-- **8 single-document queries**: Standard Q&A within one document
-- **3 multi-document queries**: Questions requiring information from multiple documents (e.g., "Compare revenue across Q1 2024 and fiscal year 2023")
-- **2 temporal queries**: Questions about changes over time (e.g., "How did revenue grow from 2022 to 2023?")
-
-**Multi-document coverage metric**: Tracks whether all required documents are retrieved for complex queries.
-
-For a portfolio project, this demonstrates evaluation of realistic financial queries that require cross-document reasoning.
+13 question-answer pairs: 8 single-document, 3 multi-document, 2 temporal queries. Includes multi-document coverage metric for complex queries.
 
 ### Sweep Parameters
 
-The hyperparameter sweep evaluates:
+Evaluates 48 configurations: `chunk_size` [256, 512, 1024], `retriever` [cosine, mmr], `top_k` [3, 5, 10], `rerank` [False, True]
 
-- `chunk_size`: [256, 512, 1024]
-- `retriever`: ['cosine', 'mmr']
-- `top_k`: [3, 5, 10]
-- `rerank`: [False, True]
+## Results
 
-Total: 48 configurations
-
-## Results Template
-
-After running a sweep, results are saved to `outputs/sweep_results.csv` with columns:
-
-- `chunk_size`: Chunk size used
-- `retriever`: Retrieval strategy
-- `top_k`: Number of retrieved chunks
-- `rerank`: Whether reranking was enabled
-- `avg_context_recall`: Average context recall score
-- `avg_faithfulness`: Average faithfulness score
-- `p50_latency`: 50th percentile latency (seconds)
-- `p95_latency`: 95th percentile latency (seconds)
-- `num_questions`: Number of questions evaluated
-
-Plots are generated in `outputs/figures/`:
-- `faithfulness_vs_latency.png`: Scatter plot of faithfulness vs latency
-- `recall_vs_chunk_size.png`: Context recall vs chunk size
-- `pareto_frontier.png`: Pareto-optimal configurations
+Sweep results saved to `outputs/sweep_results.csv` with metrics (recall, faithfulness, latency). Plots in `outputs/figures/`: faithfulness vs latency, recall vs chunk size, pareto frontier.
 
 ## CLI Commands
 
 ```bash
-# Ingest documents
 python -m finance_rag_eval.cli ingest [--docs-dir PATH]
-
-# Build index
-python -m finance_rag_eval.cli build-index [--docs-dir PATH] [--chunk-size SIZE]
-
-# Query
+python -m finance_rag_eval.cli build-index [--chunk-size SIZE] [--chunk-strategy STRATEGY]
 python -m finance_rag_eval.cli query "Your question" [--top-k K] [--use-llm]
-
-# Evaluate
-python -m finance_rag_eval.cli eval [--chunk-size SIZE] [--retriever STRATEGY] [--top-k K] [--rerank]
-
-# Sweep
+python -m finance_rag_eval.cli eval [--chunk-strategy STRATEGY] [--retriever STRATEGY] [--top-k K]
 python -m finance_rag_eval.cli sweep
-
-# Dagster instructions
-python -m finance_rag_eval.cli dagster
+python -m finance_rag_eval.cli compare-strategies
 ```
 
 ## Configuration
 
-### Environment Variables
+Uses `.envrc` (direnv) for environment variables. See `.envrc.example` for template.
 
-This project uses `.envrc` (for [direnv](https://direnv.net/)) for environment configuration. 
-
-**Setup**:
-1. Install direnv: `brew install direnv` (or see [direnv installation](https://direnv.net/docs/installation.html))
-2. Add hook to shell: `echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc && source ~/.zshrc`
-3. Allow direnv in this directory: `direnv allow`
-4. Edit `.envrc` and add your OpenAI API key
-
-**Important**: Use an **organization-level key** (starts with `sk-`) not a project-scoped key (`sk-proj-`). Get it from: https://platform.openai.com/api-keys (at organization level, not inside a project).
-
+**Required for OpenAI features**:
 ```bash
-# Edit .envrc
-export OPENAI_API_KEY=sk-your-actual-key-here
-
-# Optional: Use OpenAI embeddings instead of local models
-export EMBEDDING_MODEL=openai
-
-# Optional: LLM model for answer generation
-export LLM_MODEL=gpt-3.5-turbo
-export LLM_TEMPERATURE=0.0
+export OPENAI_API_KEY=sk-your-key-here  # Use organization-level key (sk-), not project-scoped (sk-proj-)
+export EMBEDDING_MODEL=openai  # Optional: use OpenAI embeddings
+export LLM_MODEL=gpt-3.5-turbo  # Optional: LLM for generation
 ```
 
-**Note**: `.envrc` is gitignored. For local overrides, create `.envrc.local` (also gitignored).
-
-**Without direnv**: You can also set environment variables manually:
-```bash
-export OPENAI_API_KEY=sk-your-key-here
-export EMBEDDING_MODEL=openai
-```
+**Setup**: `direnv allow` after editing `.envrc`. Or set environment variables manually.
 
 ## Development
 
-### Running Tests
-
 ```bash
-make test
-
-# Or:
-pipenv run pytest tests/ -v
+make setup    # Install dependencies
+make test     # Run tests
+make lint     # Run linter
+make format   # Format code
+make demo     # Run offline demo
+make eval     # Run evaluation
+make sweep    # Run sweep and generate plots
+make clean    # Clean generated files
 ```
 
-### Linting
-
-```bash
-make lint
-
-# Format code:
-make format
-```
-
-### Project Structure
-
-```
-finance-rag-eval/
-├── src/
-│   └── finance_rag_eval/
-│       ├── cli.py              # Typer CLI
-│       ├── config.py           # Configuration
-│       ├── constants.py         # Constants
-│       ├── logging.py           # Logging setup
-│       ├── data/                # Data ingestion
-│       ├── rag/                 # RAG pipeline
-│       ├── eval/                # Evaluation
-│       ├── viz/                 # Visualization
-│       ├── finetuning/          # Experimental fine-tuning (optional)
-│       └── dagster_app/         # Dagster orchestration
-├── tests/                       # Tests
-├── docs/                        # Documentation
-└── outputs/                     # Output files (gitignored)
-```
-
-## Makefile Targets
-
-- `make setup`: Install dependencies
-- `make lint`: Run linter
-- `make format`: Format code
-- `make test`: Run tests
-- `make demo`: Run offline demo
-- `make eval`: Run evaluation
-- `make sweep`: Run sweep and generate plots
-- `make dagster`: Print Dagster UI instructions
-- `make clean`: Clean generated files
+See `docs/` for detailed documentation including chunking strategies.
 
 ## Model Fine-Tuning (Experimental / Optional)
 
