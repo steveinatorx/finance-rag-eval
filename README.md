@@ -9,7 +9,7 @@ A production-ready Retrieval-Augmented Generation (RAG) system that answers **gr
 **Explicit non-goals:**
 - Financial analysis or forecasting
 - Subjective interpretation or opinionated summaries
-- Model fine-tuning (handled in a separate NLP project)
+- Model fine-tuning as a primary focus (fine-tuning code exists for exploratory purposes only)
 
 ## Features
 
@@ -345,6 +345,7 @@ finance-rag-eval/
 │       ├── rag/                 # RAG pipeline
 │       ├── eval/                # Evaluation
 │       ├── viz/                 # Visualization
+│       ├── finetuning/          # Experimental fine-tuning (optional)
 │       └── dagster_app/         # Dagster orchestration
 ├── tests/                       # Tests
 ├── docs/                        # Documentation
@@ -362,6 +363,30 @@ finance-rag-eval/
 - `make sweep`: Run sweep and generate plots
 - `make dagster`: Print Dagster UI instructions
 - `make clean`: Clean generated files
+
+## Model Fine-Tuning (Experimental / Optional)
+
+The `finetuning/` directory contains exploratory code for fine-tuning embedding models and LLMs on financial documents. This functionality is **not required** to run the RAG system or evaluation framework.
+
+**Why it exists:**
+- Exploratory experiments for domain adaptation
+- Comparison utilities to measure fine-tuning impact
+- Reference implementation for future work
+
+**Why it's not the focus:**
+- This project emphasizes **system-level improvements** (chunking strategies, retrieval quality, evaluation methodology)
+- Fine-tuning requires significant compute resources and labeled data
+- Production RAG systems often achieve better ROI through retrieval and evaluation improvements rather than model fine-tuning
+- Fine-tuning is featured as a first-class concept in a separate NLP project
+
+**Core learning objectives** of this project do not depend on fine-tuning:
+- RAG system design and architecture
+- Retrieval quality optimization
+- Evaluation under weak supervision
+- Latency and cost tradeoffs
+- Dagster-based orchestration
+
+The RAG pipeline works end-to-end using pre-trained models (sentence-transformers or OpenAI). Fine-tuning is an optional enhancement for those exploring domain adaptation.
 
 ## License
 
