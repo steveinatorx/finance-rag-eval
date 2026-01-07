@@ -30,6 +30,7 @@ Pipfile.lock
 
 # Environment
 .env
+.envrc
 .envrc.local
 
 # IDE
