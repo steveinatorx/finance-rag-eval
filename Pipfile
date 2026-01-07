@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+typer = {extras = ["all"], version = "*"}
+sentence-transformers = "*"
+faiss-cpu = "*"
+numpy = "*"
+beautifulsoup4 = "*"
+lxml = "*"
+dagster = "*"
+dagster-webserver = "*"
+matplotlib = "*"
+pydantic = "*"
+pydantic-settings = "*"
+rich = "*"
+openai = "*"
+
+[dev-packages]
+pytest = "*"
+ruff = "*"
+black = "*"
+
+[requires]
+python_version = "3.11"

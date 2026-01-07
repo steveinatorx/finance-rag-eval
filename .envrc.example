@@ -1,0 +1,22 @@
+# Example .envrc file
+# Copy to .envrc and add your actual API key
+# Then run: direnv allow
+
+# OpenAI API Key (optional - for enhanced embeddings and LLM generation)
+# Get your key from: https://platform.openai.com/api-keys
+# 
+# IMPORTANT: Use an organization-level key (starts with sk-) NOT a project-scoped key (sk-proj-)
+# Project-scoped keys are tied to specific projects and may be archived
+# Organization keys work across all projects
+export OPENAI_API_KEY=sk-your-key-here
+
+# Optional: Use OpenAI embeddings instead of local sentence-transformers
+# export EMBEDDING_MODEL=openai
+
+# Optional: LLM model for answer generation
+# export LLM_MODEL=gpt-3.5-turbo
+# export LLM_TEMPERATURE=0.0
+
+# Python path for development
+export PYTHONPATH=src
+

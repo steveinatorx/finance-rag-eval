@@ -1,0 +1,65 @@
+[
+  {
+    "question": "What was the total revenue in Q1 2024?",
+    "answer": "Total revenue reached $125 million in Q1 2024, representing a 15% increase compared to the same period last year."
+  },
+  {
+    "question": "What is the net income for Q1 2024?",
+    "answer": "Net income for Q1 2024 was $30 million, with an operating margin of 24%."
+  },
+  {
+    "question": "What was the annual revenue for fiscal year 2023?",
+    "answer": "Fiscal year 2023 achieved total annual revenue of $450 million, up 22% from the previous year."
+  },
+  {
+    "question": "What is the debt-to-equity ratio?",
+    "answer": "The debt-to-equity ratio is 0.35, which is conservative and provides flexibility for future growth initiatives."
+  },
+  {
+    "question": "What are the main business segments?",
+    "answer": "The business is organized into three main segments: Enterprise Software (62% of revenue), Professional Services (27% of revenue), and Data Analytics (11% of revenue)."
+  },
+  {
+    "question": "What is the cash position as of December 31, 2023?",
+    "answer": "As of December 31, 2023, cash and cash equivalents were $120 million."
+  },
+  {
+    "question": "What percentage of revenue comes from the Technology Division in Q1 2024?",
+    "answer": "The Technology Division generated $85 million, which represents 68% of total revenue in Q1 2024."
+  },
+  {
+    "question": "What are the key risk factors?",
+    "answer": "Key risk factors include market volatility, regulatory changes, technology disruption, and cybersecurity threats."
+  },
+  {
+    "question": "How does Q1 2024 revenue compare to annual revenue in 2023?",
+    "answer": "Q1 2024 revenue was $125 million, while annual revenue for 2023 was $450 million. Q1 2024 represents approximately 28% of the full year 2023 revenue.",
+    "type": "multi_document",
+    "requires_documents": ["doc1.txt", "doc2.txt"]
+  },
+  {
+    "question": "What is the revenue breakdown across all business segments?",
+    "answer": "The business has three main segments: Enterprise Software ($280 million, 62% of total), Professional Services ($120 million, 27% of total), and Data Analytics ($50 million, 11% of total). Additionally, Q1 2024 shows Technology Division ($85 million, 68%), Services Division ($30 million, 24%), and Consulting Division ($10 million, 8%).",
+    "type": "multi_document",
+    "requires_documents": ["doc1.txt", "doc2.txt"]
+  },
+  {
+    "question": "What was the revenue growth rate from 2022 to 2023?",
+    "answer": "Revenue grew 22% from the previous year (2022) to reach $450 million in fiscal year 2023.",
+    "type": "temporal",
+    "requires_documents": ["doc2.txt"]
+  },
+  {
+    "question": "How did the operating margin change from the previous quarter to Q1 2024?",
+    "answer": "The operating margin improved from 18% in the previous quarter to 24% in Q1 2024, representing a significant improvement.",
+    "type": "temporal",
+    "requires_documents": ["doc1.txt"]
+  },
+  {
+    "question": "What is the financial position and risk profile of the company?",
+    "answer": "As of December 31, 2023, the company had cash and cash equivalents of $120 million, total assets of $850 million, and a conservative debt-to-equity ratio of 0.35. Key risk factors include market volatility, regulatory changes, technology disruption, and cybersecurity threats.",
+    "type": "multi_document",
+    "requires_documents": ["doc2.txt", "doc3.txt"]
+  }
+]
+

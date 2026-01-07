@@ -1,0 +1,29 @@
+graph TD
+    A[SEC Filings] --> B[Ingestion]
+    B --> C[HTML/Text Parsing]
+    C --> D[Document Cleaning]
+    D --> E[Chunking]
+    E --> F{Fixed or Recursive}
+    F --> G[Chunks]
+    G --> H[Embedding Generation]
+    H --> I{Sentence-Transformers<br/>or OpenAI}
+    I --> J[Embeddings]
+    J --> K[FAISS Index]
+    K --> L[Query]
+    L --> M[Query Embedding]
+    M --> N[Retrieval]
+    N --> O{Cosine or MMR}
+    O --> P[Retrieved Chunks]
+    P --> Q{Rerank?}
+    Q -->|Yes| R[Cross-Encoder Reranking]
+    Q -->|No| S[Chunks]
+    R --> S
+    S --> T[Generation]
+    T --> U{LLM or Extractive}
+    U --> V[Answer with Citations]
+    
+    style A fill:#e1f5ff
+    style V fill:#c8e6c9
+    style K fill:#fff9c4
+    style T fill:#f3e5f5
+
