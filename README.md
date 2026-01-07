@@ -209,10 +209,14 @@ make setup    # Install dependencies
 make test     # Run tests
 make lint     # Run linter
 make format   # Format code
-make demo     # Run offline demo
-make eval     # Run evaluation
-make sweep    # Run sweep and generate plots
+make demo     # Run offline demo (ingest → index → query)
 make clean    # Clean generated files
+```
+
+For evaluation and sweeps, use the CLI directly:
+```bash
+python -m finance_rag_eval.cli eval
+python -m finance_rag_eval.cli sweep
 ```
 
 See `docs/` for detailed documentation including chunking strategies.

@@ -1,4 +1,4 @@
-.PHONY: setup lint test demo eval sweep dagster clean
+.PHONY: setup lint format test demo clean
 
 PYTHONPATH := src
 
@@ -20,15 +20,6 @@ demo:
 	PYTHONPATH=$(PYTHONPATH) pipenv run python -m finance_rag_eval.cli ingest
 	PYTHONPATH=$(PYTHONPATH) pipenv run python -m finance_rag_eval.cli build-index
 	PYTHONPATH=$(PYTHONPATH) pipenv run python -m finance_rag_eval.cli query "What is the revenue?"
-
-eval:
-	PYTHONPATH=$(PYTHONPATH) pipenv run python -m finance_rag_eval.cli eval
-
-sweep:
-	PYTHONPATH=$(PYTHONPATH) pipenv run python -m finance_rag_eval.cli sweep
-
-dagster:
-	@echo "Run: PYTHONPATH=$(PYTHONPATH) pipenv run dagster dev -m finance_rag_eval.dagster_app.definitions"
 
 clean:
 	find . -type d -name __pycache__ -exec rm -r {} +
