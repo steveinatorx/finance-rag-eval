@@ -6,6 +6,8 @@ A production-ready Retrieval-Augmented Generation (RAG) system that answers **gr
 
 **Target outcome:** Enable queries like *"What was total revenue in 2023?"* to return a **verifiable, citation-backed answer** in **sub-second to low-latency time**, with retrieved context that supports the response.
 
+**Design philosophy:** This project prioritizes **system-level levers** (retrieval, chunking, evaluation, orchestration) over model-level optimization, reflecting how RAG systems are most effectively improved in practice.
+
 **Explicit non-goals:**
 - Financial analysis or forecasting
 - Subjective interpretation or opinionated summaries
@@ -374,9 +376,9 @@ The `finetuning/` directory contains exploratory code for fine-tuning embedding 
 - Reference implementation for future work
 
 **Why it's not the focus:**
-- This project emphasizes **system-level improvements** (chunking strategies, retrieval quality, evaluation methodology)
+- This project prioritizes **system-level levers** (retrieval, chunking, evaluation, orchestration) over model-level optimization
 - Fine-tuning requires significant compute resources and labeled data
-- Production RAG systems often achieve better ROI through retrieval and evaluation improvements rather than model fine-tuning
+- Production RAG systems are most effectively improved through retrieval and evaluation improvements rather than model fine-tuning
 - Fine-tuning is featured as a first-class concept in a separate NLP project
 
 **Core learning objectives** of this project do not depend on fine-tuning:
