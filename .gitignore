@@ -59,3 +59,12 @@ docs/blog_notes/
 Thumbs.db
 
 .tmp_dagster_home_*/
+
+# SEC Filings (users download their own)
+# Note: We include specific filings in real_sec_filings/ for reproducibility
+data/sec_filings/
+src/finance_rag_eval/data/large_docs/
+sec-edgar-filings/
+# Allow specific real SEC filings used for evaluation
+!src/finance_rag_eval/data/real_sec_filings/AAPL_10K_2023.txt
+!src/finance_rag_eval/data/real_sec_filings/MSFT_10K_2023.txt
