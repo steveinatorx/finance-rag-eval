@@ -179,16 +179,18 @@ def compare_models(
             "context_recall_delta": float(recall_improvement),
             "faithfulness_delta": float(faithfulness_improvement),
             "latency_delta": float(latency_change),
-            "recall_improvement_pct": float(
-                (recall_improvement / base_results["avg_context_recall"]) * 100
-            )
-            if base_results["avg_context_recall"] > 0
-            else 0,
-            "faithfulness_improvement_pct": float(
-                (faithfulness_improvement / base_results["avg_faithfulness"]) * 100
-            )
-            if base_results["avg_faithfulness"] > 0
-            else 0,
+            "recall_improvement_pct": (
+                float((recall_improvement / base_results["avg_context_recall"]) * 100)
+                if base_results["avg_context_recall"] > 0
+                else 0
+            ),
+            "faithfulness_improvement_pct": (
+                float(
+                    (faithfulness_improvement / base_results["avg_faithfulness"]) * 100
+                )
+                if base_results["avg_faithfulness"] > 0
+                else 0
+            ),
         },
     }
 

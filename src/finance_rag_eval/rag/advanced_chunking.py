@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 def detect_document_structure(text: str) -> List[Dict[str, any]]:
     """
-    Detect document structure: headers, sections, paragraphs.
+    Detect document structure: headers, sections, paragraphs, tables.
 
     Args:
         text: Input text
@@ -26,11 +26,85 @@ def detect_document_structure(text: str) -> List[Dict[str, any]]:
     lines = text.split("\n")
 
     current_pos = 0
+    in_table = False
+    table_rows = []
+    table_start_pos = None
+
     for i, line in enumerate(lines):
         line_stripped = line.strip()
         if not line_stripped:
             current_pos += len(line) + 1
             continue
+
+        # Detect table rows (lines with pipe separators or multiple numbers/dollar amounts)
+        is_table_row = False
+        if "|" in line_stripped:
+            # Check if it looks like a table row (has multiple columns)
+            parts = [p.strip() for p in line_stripped.split("|")]
+            if len(parts) >= 3:  # At least 3 columns
+                is_table_row = True
+        elif re.search(r"\$\s*[\d,]+", line_stripped) and re.search(
+            r"\d{4}", line_stripped
+        ):
+            # Line with dollar amounts and years - likely table data
+            is_table_row = True
+
+        # Detect table header (starts with "Table:" or contains year headers)
+        is_table_header = line_stripped.startswith("Table:") or (
+            re.search(r"\b(2023|2024|2025|Year|Fiscal)\b", line_stripped)
+            and "|" in line_stripped
+        )
+
+        if is_table_header or is_table_row:
+            if not in_table:
+                # Start new table
+                in_table = True
+                table_start_pos = current_pos
+                table_rows = []
+
+            table_rows.append(line_stripped)
+            current_pos += len(line) + 1
+
+            # Check if next line is also a table row (within reasonable distance)
+            if i + 1 < len(lines):
+                next_line = lines[i + 1].strip()
+                next_is_table = (
+                    "|" in next_line and len(next_line.split("|")) >= 3
+                ) or (
+                    re.search(r"\$\s*[\d,]+", next_line)
+                    and re.search(r"\d{4}", next_line)
+                )
+
+                if not next_is_table and table_rows:
+                    # End of table - create table element
+                    table_text = "\n".join(table_rows)
+                    elements.append(
+                        {
+                            "type": "table",
+                            "text": table_text,
+                            "level": 0,
+                            "start_pos": table_start_pos,
+                            "end_pos": current_pos,
+                        }
+                    )
+                    in_table = False
+                    table_rows = []
+            continue
+
+        # If we were in a table and hit non-table content, save the table
+        if in_table and table_rows:
+            table_text = "\n".join(table_rows)
+            elements.append(
+                {
+                    "type": "table",
+                    "text": table_text,
+                    "level": 0,
+                    "start_pos": table_start_pos,
+                    "end_pos": current_pos,
+                }
+            )
+            in_table = False
+            table_rows = []
 
         # Detect headers (lines that are short, all caps, or end with colon)
         is_header = False
@@ -82,6 +156,19 @@ def detect_document_structure(text: str) -> List[Dict[str, any]]:
 
         current_pos += len(line) + 1
 
+    # Handle table at end of document
+    if in_table and table_rows:
+        table_text = "\n".join(table_rows)
+        elements.append(
+            {
+                "type": "table",
+                "text": table_text,
+                "level": 0,
+                "start_pos": table_start_pos,
+                "end_pos": current_pos,
+            }
+        )
+
     return elements
 
 
@@ -116,6 +203,29 @@ def structure_aware_chunk(
     for element in structure:
         element_text = element["text"]
 
+        # Handle tables specially - include them with surrounding context
+        if element["type"] == "table":
+            # Tables should be included with their header context
+            table_with_context = ""
+            if current_header:
+                table_with_context = current_header + "\n\n" + element_text
+            else:
+                table_with_context = element_text
+
+            # Check if adding table would exceed chunk size
+            if current_chunk and len(current_chunk + table_with_context) > chunk_size:
+                # Save current chunk
+                chunks.append(current_chunk.strip())
+                # Start new chunk with table and header
+                current_chunk = table_with_context + "\n\n"
+            else:
+                # Add table to current chunk
+                if current_chunk:
+                    current_chunk += "\n\n" + table_with_context + "\n\n"
+                else:
+                    current_chunk = table_with_context + "\n\n"
+            continue
+
         # If we hit a header, decide whether to start new chunk
         if element["type"] == "header":
             # If current chunk is substantial, save it
@@ -137,26 +247,54 @@ def structure_aware_chunk(
             current_header = element_text
         else:
             # Regular paragraph
-            # Check if adding this would exceed chunk size
-            potential_chunk = current_chunk + element_text + "\n\n"
+            # If the paragraph itself is very large, split it using fixed-size chunking
+            if len(element_text) > chunk_size * 2:
+                # Save current chunk if it exists
+                if current_chunk.strip():
+                    chunks.append(current_chunk.strip())
 
-            if len(potential_chunk) > chunk_size and current_chunk:
-                # Save current chunk
-                chunks.append(current_chunk.strip())
-                # Start new chunk with overlap and header context
-                if chunk_overlap > 0 and current_chunk:
-                    overlap_text = current_chunk[-chunk_overlap:]
-                    new_chunk = overlap_text + "\n\n"
-                    if current_header:
-                        new_chunk += current_header + "\n"
-                    current_chunk = new_chunk + element_text + "\n\n"
+                # Split large paragraph into smaller chunks
+                from finance_rag_eval.rag.chunking import fixed_size_chunk
+
+                paragraph_chunks = fixed_size_chunk(
+                    element_text, chunk_size, chunk_overlap
+                )
+
+                # Add header context to first chunk if available
+                if current_header and paragraph_chunks:
+                    paragraph_chunks[0] = current_header + "\n" + paragraph_chunks[0]
+
+                # Add all but last chunk
+                chunks.extend(paragraph_chunks[:-1])
+
+                # Use last chunk as current chunk (with overlap)
+                if paragraph_chunks:
+                    current_chunk = paragraph_chunks[-1] + "\n\n"
                 else:
-                    if current_header:
-                        current_chunk = current_header + "\n" + element_text + "\n\n"
-                    else:
-                        current_chunk = element_text + "\n\n"
+                    current_chunk = ""
             else:
-                current_chunk = potential_chunk
+                # Normal-sized paragraph - check if adding this would exceed chunk size
+                potential_chunk = current_chunk + element_text + "\n\n"
+
+                if len(potential_chunk) > chunk_size and current_chunk:
+                    # Save current chunk
+                    chunks.append(current_chunk.strip())
+                    # Start new chunk with overlap and header context
+                    if chunk_overlap > 0 and current_chunk:
+                        overlap_text = current_chunk[-chunk_overlap:]
+                        new_chunk = overlap_text + "\n\n"
+                        if current_header:
+                            new_chunk += current_header + "\n"
+                        current_chunk = new_chunk + element_text + "\n\n"
+                    else:
+                        if current_header:
+                            current_chunk = (
+                                current_header + "\n" + element_text + "\n\n"
+                            )
+                        else:
+                            current_chunk = element_text + "\n\n"
+                else:
+                    current_chunk = potential_chunk
 
     # Add final chunk
     if current_chunk.strip():

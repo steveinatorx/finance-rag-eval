@@ -20,8 +20,8 @@ def run_sweep(
 
     Parameters:
         - chunk_size: [256, 512, 1024]
-        - retriever: ['cosine', 'mmr']
-        - top_k: [3, 5, 10]
+        - retriever: ['cosine', 'mmr', 'hybrid']
+        - top_k: [5, 10, 15]  # Increased to test error tail
         - rerank: [False, True]
 
     Args:
@@ -42,8 +42,8 @@ def run_sweep(
         "structure_aware",
         "semantic",
     ]  # Add strategies
-    retrievers = ["cosine", "mmr"]
-    top_ks = [3, 5, 10]
+    retrievers = ["cosine", "mmr", "hybrid"]
+    top_ks = [5, 10, 15]  # Higher values to address error tail
     rerank_options = [False, True]
 
     results = []
@@ -55,7 +55,7 @@ def run_sweep(
         * len(top_ks)
         * len(rerank_options)
     )
-    logger.info(f"Evaluating {total_configs} configurations")
+    logger.info("Evaluating %d configurations", total_configs)
 
     config_idx = 0
     for chunk_size in chunk_sizes:
@@ -65,7 +65,15 @@ def run_sweep(
                     for rerank_enabled in rerank_options:
                         config_idx += 1
                         logger.info(
-                            f"Config {config_idx}/{total_configs}: chunk_size={chunk_size}, chunk_strategy={chunk_strategy}, retriever={retriever}, top_k={top_k}, rerank={rerank_enabled}"
+                            "Config %d/%d: chunk_size=%d, chunk_strategy=%s, "
+                            "retriever=%s, top_k=%d, rerank=%s",
+                            config_idx,
+                            total_configs,
+                            chunk_size,
+                            chunk_strategy,
+                            retriever,
+                            top_k,
+                            rerank_enabled,
                         )
 
                         config = {
@@ -75,11 +83,14 @@ def run_sweep(
                             "top_k": top_k,
                             "rerank": rerank_enabled,
                         }
+                        # Add dense_weight for hybrid retrieval
+                        if retriever == "hybrid":
+                            config["dense_weight"] = 0.5  # Equal weight by default
 
                     eval_result = evaluate_config(config, docs_dir, gold_set_path)
 
                     if "error" in eval_result:
-                        logger.warning(f"Config failed: {eval_result['error']}")
+                        logger.warning("Config failed: %s", eval_result["error"])
                         continue
 
                     # Extract summary metrics
@@ -103,12 +114,12 @@ def run_sweep(
 
     if results:
         fieldnames = list(results[0].keys())
-        with open(csv_path, "w", newline="") as f:
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(results)
 
-        logger.info(f"Saved sweep results to {csv_path}")
+        logger.info("Saved sweep results to %s", csv_path)
     else:
         logger.error("No results to save")
 

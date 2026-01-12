@@ -1,9 +1,9 @@
 name: Pylint
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,6 +21,6 @@ jobs:
     - name: Install dependencies
       run: |
         pipenv install --dev
-    - name: Analysing the code with pylint
+    - name: Run pylint
       run: |
-        pipenv run pylint $(git ls-files '*.py')
+        PYTHONPATH=src pipenv run pylint src/ tests/ --fail-under=9.0

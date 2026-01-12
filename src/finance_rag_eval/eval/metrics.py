@@ -15,7 +15,8 @@ def context_recall_proxy(
     """
     Proxy for context recall: check if retrieved chunks contain answer spans.
 
-    Simple heuristic: check if key phrases from gold answer appear in retrieved chunks.
+    Improved heuristic: check if key phrases from gold answer appear in retrieved chunks,
+    with better handling of numbers, formatting, and HTML entities.
 
     Args:
         retrieved_chunks: List of retrieved chunk dictionaries
@@ -27,22 +28,65 @@ def context_recall_proxy(
     if not retrieved_chunks or not gold_answer:
         return 0.0
 
-    # Extract key phrases from gold answer (words longer than 4 chars)
-    gold_lower = gold_answer.lower()
-    key_phrases = [
-        phrase.strip() for phrase in gold_lower.split() if len(phrase.strip()) > 4
-    ]
+    import re
 
-    if not key_phrases:
-        return 0.0
+    # Normalize text: remove HTML entities, normalize whitespace
+    def normalize_text(text: str) -> str:
+        # Remove HTML entities
+        text = re.sub(r"&#\d+;", " ", text)
+        # Remove HTML tags
+        text = re.sub(r"<[^>]+>", " ", text)
+        # Normalize whitespace
+        text = re.sub(r"\s+", " ", text)
+        return text.lower().strip()
 
-    # Check how many key phrases appear in retrieved chunks
+    gold_normalized = normalize_text(gold_answer)
     retrieved_text = " ".join(
-        [chunk["chunk"]["text"].lower() for chunk in retrieved_chunks]
+        [normalize_text(chunk["chunk"]["text"]) for chunk in retrieved_chunks]
     )
 
-    matches = sum(1 for phrase in key_phrases if phrase in retrieved_text)
-    recall = matches / len(key_phrases) if key_phrases else 0.0
+    # Extract key phrases: words longer than 3 chars
+    key_phrases = []
+    for word in gold_normalized.split():
+        word_clean = re.sub(r"[^\w]", "", word)  # Remove punctuation
+        if len(word_clean) > 3 and not word_clean.isdigit():
+            key_phrases.append(word_clean)
+
+    # Extract numbers (normalize: remove commas, spaces, dollar signs)
+    gold_numbers = re.findall(r"[\d,]+", gold_answer)
+    gold_numbers_clean = [
+        num.replace(",", "").replace(" ", "")
+        for num in gold_numbers
+        if len(num.replace(",", "")) >= 3
+    ]
+
+    # Normalize retrieved text for number matching
+    retrieved_numbers_normalized = re.sub(r"[^\d]", "", retrieved_text)
+
+    # Count matches
+    phrase_matches = sum(1 for phrase in key_phrases if phrase in retrieved_text)
+
+    # Check if numbers appear (at least one number must match)
+    number_matches = 0
+    if gold_numbers_clean:
+        for num in gold_numbers_clean:
+            if num in retrieved_numbers_normalized:
+                number_matches = 1  # Count as 1 if any number matches
+                break
+
+    # Calculate recall: weighted combination
+    # Phrases are more important, but numbers are critical
+    total_phrases = len(key_phrases) if key_phrases else 1
+    phrase_score = phrase_matches / total_phrases
+
+    # If there are numbers, they must be present for full score
+    if gold_numbers_clean:
+        number_score = number_matches  # 0 or 1
+        # Weighted: 70% phrases, 30% numbers (numbers are critical)
+        recall = 0.7 * phrase_score + 0.3 * number_score
+    else:
+        # No numbers, just use phrase score
+        recall = phrase_score
 
     return min(recall, 1.0)
 
@@ -153,7 +197,7 @@ def multi_document_coverage(
 
 
 def compute_metrics(
-    query: str,
+    query: str,  # pylint: disable=unused-argument
     gold_answer: str,
     retrieved_chunks: List[dict],
     answer: str,

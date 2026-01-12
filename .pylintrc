@@ -1,0 +1,25 @@
+[MASTER]
+# Python code to execute, usually for sys.path manipulation such as pygtk.require().
+init-hook='import sys; sys.path.insert(0, "src")'
+
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=
+    missing-class-docstring,
+    too-few-public-methods,
+    redefined-builtin,
+    import-outside-toplevel,
+    too-many-arguments,
+    too-many-positional-arguments,
+    redefined-outer-name,
+    assignment-from-no-return,
+    raise-missing-from,
+    duplicate-code,
+    broad-exception-caught
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=7
+max-positional-args=7

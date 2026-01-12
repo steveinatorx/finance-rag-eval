@@ -9,7 +9,9 @@ from finance_rag_eval.rag.ingestion import load_documents_from_dir
 
 
 @asset(key_prefix=["rag"])
-def docs_raw(context: AssetExecutionContext, paths: ResourceParam[PathsResource]) -> List[dict]:
+def docs_raw(
+    context: AssetExecutionContext, paths: ResourceParam[PathsResource]
+) -> List[dict]:
     """
     Load raw documents from sample docs directory.
 

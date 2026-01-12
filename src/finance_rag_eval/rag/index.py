@@ -1,6 +1,7 @@
-"""FAISS index builder and management."""
+"""FAISS index builder and management with optional BM25 support for hybrid retrieval."""
 
 import pickle
+import re
 from pathlib import Path
 from typing import List
 
@@ -11,20 +12,40 @@ from finance_rag_eval.logging import get_logger
 
 logger = get_logger(__name__)
 
+# Lazy loading for BM25
+_bm25_available = None
+
+
+def _check_bm25_available():
+    """Check if rank-bm25 is available."""
+    global _bm25_available
+    if _bm25_available is None:
+        try:
+            import rank_bm25  # noqa: F401
+
+            _bm25_available = True
+        except ImportError:
+            _bm25_available = False
+    return _bm25_available
+
 
 class FAISSIndex:
-    """FAISS index wrapper for vector similarity search."""
+    """FAISS index wrapper for vector similarity search with optional BM25 support."""
 
-    def __init__(self, dimension: int):
+    def __init__(self, dimension: int, enable_bm25: bool = False):
         """
         Initialize FAISS index.
 
         Args:
             dimension: Dimension of embeddings
+            enable_bm25: If True, also build BM25 index for hybrid retrieval
         """
         self.dimension = dimension
         self.index = faiss.IndexFlatL2(dimension)
         self.chunks: List[dict] = []
+        self.enable_bm25 = enable_bm25 and _check_bm25_available()
+        self.bm25_index = None
+        self.bm25_tokenized_corpus = None
 
     def add(self, embeddings: np.ndarray, chunks: List[dict]) -> None:
         """
@@ -42,7 +63,51 @@ class FAISSIndex:
 
         self.index.add(embeddings.astype("float32"))
         self.chunks.extend(chunks)
-        logger.info(f"Added {len(chunks)} chunks to index (total: {self.index.ntotal})")
+
+        # Build BM25 index if enabled
+        if self.enable_bm25:
+            self._build_bm25_index(chunks)
+
+        logger.info(
+            f"Added {len(chunks)} chunks to index (total: {self.index.ntotal}, "
+            f"BM25: {self.enable_bm25})"
+        )
+
+    def _build_bm25_index(self, chunks: List[dict]) -> None:
+        """Build BM25 index from chunks."""
+        try:
+            from rank_bm25 import BM25Okapi
+
+            # Tokenize chunks for BM25
+            tokenized_corpus = []
+            for chunk in chunks:
+                text = chunk.get("text", "")
+                # Clean HTML: remove tags, decode entities, normalize whitespace
+                text_clean = re.sub(r"<[^>]+>", " ", text)  # Remove HTML tags
+                text_clean = re.sub(
+                    r"&#[0-9]+;", " ", text_clean
+                )  # Remove HTML entities
+                text_clean = re.sub(r"\s+", " ", text_clean)  # Normalize whitespace
+
+                # Extract tokens: words and numbers (including numbers with commas)
+                # This regex matches: word characters OR numbers (with optional commas/spaces)
+                tokens = re.findall(
+                    r"\b\w+\b|\d{1,3}(?:[,\s]\d{3})*", text_clean.lower()
+                )
+                # Also extract individual number parts (383, 285) for better matching
+                number_parts = re.findall(r"\d+", text_clean)
+                tokens.extend(number_parts)
+
+                tokenized_corpus.append(tokens)
+
+            self.bm25_index = BM25Okapi(tokenized_corpus)
+            self.bm25_tokenized_corpus = tokenized_corpus
+            logger.debug("Built BM25 index")
+        except ImportError:
+            logger.warning(
+                "rank-bm25 not available. Install with: pip install rank-bm25"
+            )
+            self.enable_bm25 = False
 
     def search(
         self,
@@ -80,6 +145,55 @@ class FAISSIndex:
                     {
                         "chunk": chunk,
                         "score": float(score),
+                        "metadata": chunk.get("metadata", {}),
+                    }
+                )
+
+        return results
+
+    def bm25_search(self, query: str, k: int = 5) -> List[dict]:
+        """
+        Search using BM25 (keyword-based retrieval).
+
+        Args:
+            query: Query string
+            k: Number of results to return
+
+        Returns:
+            List of chunk dictionaries with 'chunk', 'score', 'metadata'
+        """
+        if not self.enable_bm25 or self.bm25_index is None:
+            return []
+
+        # Tokenize query: extract words and numbers
+        query_clean = query.lower()
+        query_tokens = re.findall(r"\b\w+\b|\d{1,3}(?:[,\s]\d{3})*", query_clean)
+        # Also extract individual number parts
+        number_parts = re.findall(r"\d+", query_clean)
+        query_tokens.extend(number_parts)
+
+        if not query_tokens:
+            return []
+
+        # Get BM25 scores
+        scores = self.bm25_index.get_scores(query_tokens)
+
+        # Get top-k indices
+        top_indices = np.argsort(scores)[::-1][:k]
+
+        results = []
+        for idx in top_indices:
+            if idx < len(self.chunks) and scores[idx] > 0:
+                chunk = self.chunks[idx]
+                # Normalize BM25 score (BM25 scores can be > 1, normalize to 0-1)
+                max_score = max(scores) if len(scores) > 0 else 1.0
+                normalized_score = (
+                    min(scores[idx] / max_score, 1.0) if max_score > 0 else 0.0
+                )
+                results.append(
+                    {
+                        "chunk": chunk,
+                        "score": float(normalized_score),
                         "metadata": chunk.get("metadata", {}),
                     }
                 )

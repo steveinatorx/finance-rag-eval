@@ -8,11 +8,17 @@ from rich.console import Console
 from finance_rag_eval.constants import EVAL_GOLD_SET, OUTPUTS_DIR, SAMPLE_DOCS_DIR
 from finance_rag_eval.eval.runner import evaluate_config
 from finance_rag_eval.eval.sweep import run_sweep
+from finance_rag_eval.eval.strategy_comparison import (
+    compare_strategies as compare_strategies_func,
+)
 from finance_rag_eval.logging import setup_logging, get_logger
+from finance_rag_eval.rag.advanced_chunking import chunk_documents_advanced
+from finance_rag_eval.rag.chunking import chunk_documents
 from finance_rag_eval.rag.embeddings import generate_embeddings
 from finance_rag_eval.rag.generation import generate_answer
 from finance_rag_eval.rag.index import FAISSIndex
 from finance_rag_eval.rag.ingestion import load_documents_from_dir
+from finance_rag_eval.rag.langchain_chunking import chunk_documents_langchain
 from finance_rag_eval.rag.retrieval import retrieve
 from finance_rag_eval.viz.plots import generate_all_plots
 
@@ -51,7 +57,10 @@ def build_index(
     chunk_strategy: str = typer.Option(
         "fixed",
         "--chunk-strategy",
-        help="Chunking strategy: fixed, recursive, structure_aware, semantic, hybrid, langchain_recursive, langchain_semantic",
+        help=(
+            "Chunking strategy: fixed, recursive, structure_aware, "
+            "semantic, hybrid, langchain_recursive, langchain_semantic"
+        ),
     ),
     output_dir: Path = typer.Option(
         OUTPUTS_DIR, "--output-dir", help="Output directory"
@@ -68,23 +77,17 @@ def build_index(
     # Chunk using selected strategy
     if chunk_strategy.startswith("langchain"):
         # Use LangChain chunking
-        from finance_rag_eval.rag.langchain_chunking import chunk_documents_langchain
-
         langchain_strategy = chunk_strategy.replace("langchain_", "")
         chunks = chunk_documents_langchain(
             documents, chunk_size=chunk_size, strategy=langchain_strategy
         )
     elif chunk_strategy in ["structure_aware", "semantic", "hybrid"]:
         # Use advanced chunking
-        from finance_rag_eval.rag.advanced_chunking import chunk_documents_advanced
-
         chunks = chunk_documents_advanced(
             documents, chunk_size=chunk_size, strategy=chunk_strategy
         )
     else:
         # Use standard chunking
-        from finance_rag_eval.rag.chunking import chunk_documents
-
         chunks = chunk_documents(
             documents, chunk_size=chunk_size, strategy=chunk_strategy
         )
@@ -141,8 +144,13 @@ def query(
     # Generate query embedding
     query_embedding = generate_embeddings([question])[0]
 
-    # Retrieve
-    retrieved = retrieve(query_embedding.reshape(1, -1), index, k=top_k)
+    # Retrieve (hybrid needs query string)
+    retrieved = retrieve(
+        query_embedding.reshape(1, -1),
+        index,
+        k=top_k,
+        query=question,  # For hybrid retrieval
+    )
     console.print(f"\n[bold]Retrieved {len(retrieved)} chunks:[/bold]")
 
     for i, result in enumerate(retrieved, 1):
@@ -155,8 +163,8 @@ def query(
     console.print(answer)
 
 
-@app.command()
-def eval(
+@app.command(name="eval")
+def evaluate(
     docs_dir: Path = typer.Option(
         SAMPLE_DOCS_DIR,
         "--docs-dir",
@@ -173,7 +181,9 @@ def eval(
         "--chunk-strategy",
         help="Chunking strategy: fixed, recursive, structure_aware, semantic, hybrid",
     ),
-    retriever: str = typer.Option("cosine", "--retriever", help="Retriever strategy"),
+    retriever: str = typer.Option(
+        "cosine", "--retriever", help="Retriever strategy: cosine, mmr, hybrid"
+    ),
     top_k: int = typer.Option(5, "--top-k", help="Number of results"),
     rerank_enabled: bool = typer.Option(False, "--rerank", help="Enable reranking"),
 ) -> None:
@@ -232,9 +242,7 @@ def compare_strategies(
     setup_logging()
     console.print("[bold]Comparing chunking strategies...[/bold]")
 
-    from finance_rag_eval.eval.strategy_comparison import compare_strategies
-
-    csv_path = compare_strategies(docs_dir, gold_set, output_dir, chunk_size)
+    csv_path = compare_strategies_func(docs_dir, gold_set, output_dir, chunk_size)
     console.print(f"[green]Results saved to {csv_path}[/green]")
 
 

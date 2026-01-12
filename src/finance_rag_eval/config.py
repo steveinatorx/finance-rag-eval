@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     sample_docs_dir: Path = Path("src/finance_rag_eval/data/sample_docs")
 
     class Config:
+        """Pydantic configuration for settings."""
+
         # Note: Uses environment variables (set via .envrc with direnv, or manually)
         # Also checks .env file for compatibility
         env_file = ".env"

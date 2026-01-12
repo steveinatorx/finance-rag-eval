@@ -17,12 +17,13 @@ pydantic = "*"
 pydantic-settings = "*"
 rich = "*"
 openai = "*"
+rank-bm25 = "*"
+sec-edgar-downloader = "*"
 
 [dev-packages]
 pytest = "*"
-ruff = "*"
-black = "*"
 pylint = "*"
+black = "*"
 
 [requires]
 python_version = "3.11"

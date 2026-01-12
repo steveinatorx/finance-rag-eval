@@ -291,7 +291,7 @@ def fixed_size_chunk(
         # Prevent infinite loop: ensure we always advance
         if new_start <= start:
             new_start = start + 1
-        
+
         start = new_start
 
         # Prevent infinite loop

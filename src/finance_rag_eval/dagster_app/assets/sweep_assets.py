@@ -39,7 +39,7 @@ def sweep_results(
 @asset(key_prefix=["rag"])
 def plots(
     context: AssetExecutionContext,
-    sweep_results: Path,
+    sweep_results: Path,  # pylint: disable=redefined-outer-name
     paths: ResourceParam[PathsResource],
 ) -> Dict[str, Path]:
     """

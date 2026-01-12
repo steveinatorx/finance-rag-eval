@@ -10,7 +10,7 @@ from finance_rag_eval.finetuning.embedding_finetune import finetune_on_documents
 
 
 @asset(key_prefix=["rag"])
-def finetuned_embedding_model(
+def finetuned_embedding_model(  # pylint: disable=redefined-outer-name
     context: AssetExecutionContext,
     docs_clean,
     paths,

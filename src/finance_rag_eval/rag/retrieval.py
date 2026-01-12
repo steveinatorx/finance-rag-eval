@@ -1,4 +1,4 @@
-"""Retrieval strategies: cosine similarity and MMR (Maximal Marginal Relevance)."""
+"""Retrieval strategies: cosine similarity, MMR, and hybrid (BM25 + dense)."""
 
 from typing import List
 
@@ -100,12 +100,88 @@ def mmr_retrieval(
     return selected
 
 
+def hybrid_retrieval(
+    query: str,
+    query_embedding: np.ndarray,
+    index,
+    k: int = DEFAULT_TOP_K,
+    dense_weight: float = 0.5,
+) -> List[dict]:
+    """
+    Hybrid retrieval combining BM25 (keyword) and dense (embedding) search.
+
+    Combines the strengths of both:
+    - BM25: Catches exact keyword matches, handles synonyms poorly
+    - Dense: Catches semantic similarity, handles synonyms well
+
+    Args:
+        query: Query string (for BM25)
+        query_embedding: Query embedding vector (for dense search)
+        index: FAISSIndex instance (must have BM25 enabled)
+        k: Number of results
+        dense_weight: Weight for dense scores (0-1). BM25 weight = 1 - dense_weight
+
+    Returns:
+        List of retrieved chunks with combined scores
+    """
+    if not hasattr(index, "enable_bm25") or not index.enable_bm25:
+        logger.warning("BM25 not enabled in index, falling back to cosine retrieval")
+        return cosine_retrieval(query_embedding, index, k)
+
+    # Get results from both methods
+    dense_results = cosine_retrieval(
+        query_embedding, index, k * 2
+    )  # Get more candidates
+    bm25_results = index.bm25_search(query, k * 2)
+
+    # Create a combined score dictionary
+    # Use chunk text as key (more reliable than object ID)
+    chunk_scores = {}
+    chunk_data = {}
+
+    # Process dense results
+    for result in dense_results:
+        chunk_text = result["chunk"].get("text", "")
+        chunk_key = hash(chunk_text)  # Use hash of text as key
+        chunk_scores[chunk_key] = {"dense": result["score"], "bm25": 0.0}
+        chunk_data[chunk_key] = result
+
+    # Process BM25 results and combine
+    for result in bm25_results:
+        chunk_text = result["chunk"].get("text", "")
+        chunk_key = hash(chunk_text)
+        if chunk_key in chunk_scores:
+            chunk_scores[chunk_key]["bm25"] = result["score"]
+        else:
+            chunk_scores[chunk_key] = {"dense": 0.0, "bm25": result["score"]}
+            chunk_data[chunk_key] = result
+
+    # Combine scores
+    combined_results = []
+    for chunk_id, scores in chunk_scores.items():
+        combined_score = (
+            dense_weight * scores["dense"] + (1 - dense_weight) * scores["bm25"]
+        )
+        result = chunk_data[chunk_id].copy()
+        result["score"] = combined_score
+        result["metadata"] = result.get("metadata", {})
+        result["metadata"]["dense_score"] = scores["dense"]
+        result["metadata"]["bm25_score"] = scores["bm25"]
+        combined_results.append(result)
+
+    # Sort by combined score and return top-k
+    combined_results.sort(key=lambda x: x["score"], reverse=True)
+    return combined_results[:k]
+
+
 def retrieve(
     query_embedding: np.ndarray,
     index,
     k: int = DEFAULT_TOP_K,
     strategy: str = "cosine",
     diversity: float = DEFAULT_MMR_DIVERSITY,
+    query: str = None,  # Required for hybrid strategy
+    dense_weight: float = 0.5,  # For hybrid strategy
 ) -> List[dict]:
     """
     Retrieve chunks using specified strategy.
@@ -114,13 +190,22 @@ def retrieve(
         query_embedding: Query embedding vector
         index: FAISSIndex instance
         k: Number of results
-        strategy: 'cosine' or 'mmr'
+        strategy: 'cosine', 'mmr', or 'hybrid'
         diversity: MMR diversity parameter (only used for MMR)
+        query: Query string (required for 'hybrid' strategy)
+        dense_weight: Weight for dense scores in hybrid (0-1)
 
     Returns:
         List of retrieved chunks
     """
     if strategy == "mmr":
         return mmr_retrieval(query_embedding, index, k, diversity)
+    elif strategy == "hybrid":
+        if query is None:
+            logger.warning(
+                "Query string required for hybrid retrieval, falling back to cosine"
+            )
+            return cosine_retrieval(query_embedding, index, k)
+        return hybrid_retrieval(query, query_embedding, index, k, dense_weight)
     else:
         return cosine_retrieval(query_embedding, index, k)

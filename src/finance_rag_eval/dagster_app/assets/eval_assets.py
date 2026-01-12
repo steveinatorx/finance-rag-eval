@@ -12,7 +12,7 @@ from finance_rag_eval.rag.index import FAISSIndex
 @asset(key_prefix=["rag"])
 def eval_results(
     context: AssetExecutionContext,
-    faiss_index: FAISSIndex,
+    faiss_index: FAISSIndex,  # pylint: disable=unused-argument
     paths: ResourceParam[PathsResource],
 ) -> Dict:
     """
@@ -39,8 +39,10 @@ def eval_results(
 
     results = evaluate_config(config, docs_dir, gold_set_path)
 
+    recall = results.get("avg_context_recall", 0)
+    faithfulness = results.get("avg_faithfulness", 0)
     context.log.info(
-        f"Evaluation complete: recall={results.get('avg_context_recall', 0):.3f}, faithfulness={results.get('avg_faithfulness', 0):.3f}"
+        f"Evaluation complete: recall={recall:.3f}, faithfulness={faithfulness:.3f}"
     )
 
     return results

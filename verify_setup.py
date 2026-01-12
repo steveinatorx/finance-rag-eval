@@ -23,19 +23,19 @@ def check_paths():
     project_root = Path(__file__).parent
     sample_docs = project_root / "src" / "finance_rag_eval" / "data" / "sample_docs"
     gold_set = project_root / "src" / "finance_rag_eval" / "data" / "qa_gold.json"
-    
+
     if sample_docs.exists() and list(sample_docs.glob("*.txt")):
         print(f"✓ Sample documents found: {len(list(sample_docs.glob('*.txt')))} files")
     else:
         print(f"✗ Sample documents not found at {sample_docs}")
         return False
-    
+
     if gold_set.exists():
         print(f"✓ Gold set found at {gold_set}")
     else:
         print(f"✗ Gold set not found at {gold_set}")
         return False
-    
+
     return True
 
 def main():
@@ -63,4 +63,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

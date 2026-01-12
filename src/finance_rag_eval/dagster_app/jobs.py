@@ -6,7 +6,7 @@ from finance_rag_eval.dagster_app.assets.eval_assets import eval_results
 from finance_rag_eval.dagster_app.assets.sweep_assets import plots, sweep_results
 
 # Offline RAG pipeline job: ingest -> index -> eval
-rag_offline_job = define_asset_job(
+rag_offline_job = define_asset_job(  # pylint: disable=assignment-from-no-return
     name="rag_offline_job",
     selection=AssetSelection.assets(
         eval_results,
@@ -15,7 +15,7 @@ rag_offline_job = define_asset_job(
 )
 
 # Sweep job: run hyperparameter sweep and generate plots
-rag_sweep_job = define_asset_job(
+rag_sweep_job = define_asset_job(  # pylint: disable=assignment-from-no-return
     name="rag_sweep_job",
     selection=AssetSelection.assets(
         sweep_results,

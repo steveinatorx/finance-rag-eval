@@ -96,7 +96,7 @@ export SEC_EDGAR_EMAIL=your.email@example.com
 pipenv run python scripts/download_real_filings.py
 
 # Evaluate on real filings
-pipenv run python -m finance_rag_eval.cli eval \
+pipenv run python -m finance_rag_eval.cli evaluate \
   --docs-dir src/finance_rag_eval/data/real_sec_filings \
   --chunk-strategy structure_aware \
   --retriever hybrid \
@@ -246,7 +246,7 @@ Sweep results saved to `outputs/sweep_results.csv` with metrics (recall, faithfu
 python -m finance_rag_eval.cli ingest [--docs-dir PATH]
 python -m finance_rag_eval.cli build-index [--chunk-size SIZE] [--chunk-strategy STRATEGY]
 python -m finance_rag_eval.cli query "Your question" [--top-k K] [--use-llm]
-python -m finance_rag_eval.cli eval [--chunk-strategy STRATEGY] [--retriever STRATEGY] [--top-k K] [--rerank]
+python -m finance_rag_eval.cli evaluate [--chunk-strategy STRATEGY] [--retriever STRATEGY] [--top-k K] [--rerank]
 python -m finance_rag_eval.cli sweep
 python -m finance_rag_eval.cli compare-strategies
 ```

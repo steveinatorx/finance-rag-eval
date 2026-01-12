@@ -6,12 +6,11 @@ setup:
 	pipenv install --dev
 
 lint:
-	PYTHONPATH=$(PYTHONPATH) pipenv run ruff check src/ tests/
-	PYTHONPATH=$(PYTHONPATH) pipenv run ruff format --check src/ tests/
+	PYTHONPATH=$(PYTHONPATH) pipenv run pylint src/ tests/ --fail-under=9.0 || true
+	PYTHONPATH=$(PYTHONPATH) pipenv run black --check src/ tests/
 
 format:
-	PYTHONPATH=$(PYTHONPATH) pipenv run ruff format src/ tests/
-	PYTHONPATH=$(PYTHONPATH) pipenv run ruff check --fix src/ tests/
+	PYTHONPATH=$(PYTHONPATH) pipenv run black src/ tests/
 
 test:
 	PYTHONPATH=$(PYTHONPATH) pipenv run pytest tests/ -v

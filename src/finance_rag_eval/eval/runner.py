@@ -25,19 +25,18 @@ logger = get_logger(__name__)
 def load_gold_set(gold_set_path: Path) -> List[Dict]:
     """Load QA gold set from JSON file."""
     if not gold_set_path.exists():
-        logger.warning(f"Gold set not found at {gold_set_path}")
+        logger.warning("Gold set not found at %s", gold_set_path)
         return []
 
-    with open(gold_set_path, "r") as f:
+    with open(gold_set_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     if isinstance(data, list):
         return data
-    elif isinstance(data, dict) and "questions" in data:
+    if isinstance(data, dict) and "questions" in data:
         return data["questions"]
-    else:
-        logger.error(f"Unexpected gold set format in {gold_set_path}")
-        return []
+    logger.error("Unexpected gold set format in %s", gold_set_path)
+    return []
 
 
 def evaluate_config(
@@ -51,7 +50,8 @@ def evaluate_config(
     Args:
         config: Configuration dictionary with:
             - chunk_size: int
-            - chunk_strategy: str ('fixed', 'recursive', 'structure_aware', 'semantic', 'hybrid', etc.)
+            - chunk_strategy: str ('fixed', 'recursive', 'structure_aware',
+          'semantic', 'hybrid', etc.)
             - retriever: str ('cosine' or 'mmr')
             - top_k: int
             - rerank: bool
@@ -61,12 +61,12 @@ def evaluate_config(
     Returns:
         Dictionary with evaluation results
     """
-    logger.info(f"Evaluating config: {config}")
+    logger.info("Evaluating config: %s", config)
 
     # Load documents
     documents = load_documents_from_dir(docs_dir)
     if not documents:
-        logger.error(f"No documents found in {docs_dir}")
+        logger.error("No documents found in %s", docs_dir)
         return {"error": "No documents found"}
 
     # Chunk documents using specified strategy
@@ -97,8 +97,10 @@ def evaluate_config(
     chunk_texts = [chunk["text"] for chunk in chunks]
     embeddings = generate_embeddings(chunk_texts)
 
-    # Build index
-    index = FAISSIndex(dimension=embeddings.shape[1])
+    # Build index (enable BM25 if using hybrid retrieval)
+    retriever_strategy = config.get("retriever", "cosine")
+    enable_bm25 = retriever_strategy == "hybrid"
+    index = FAISSIndex(dimension=embeddings.shape[1], enable_bm25=enable_bm25)
     index.add(embeddings, chunks)
 
     # Load gold set
@@ -124,12 +126,20 @@ def evaluate_config(
         query_embedding = generate_embeddings([query])[0]
 
         # Retrieve
+        retriever_strategy = config.get("retriever", "cosine")
+        retrieval_kwargs = {
+            "query_embedding": query_embedding.reshape(1, -1),
+            "index": index,
+            "k": config.get("top_k", 5),
+            "strategy": retriever_strategy,
+        }
+        # Hybrid strategy needs query string
+        if retriever_strategy == "hybrid":
+            retrieval_kwargs["query"] = query
+            retrieval_kwargs["dense_weight"] = config.get("dense_weight", 0.5)
+
         retrieval_result, retrieval_latency = measure_latency(
-            retrieve,
-            query_embedding.reshape(1, -1),
-            index,
-            k=config.get("top_k", 5),
-            strategy=config.get("retriever", "cosine"),
+            retrieve, **retrieval_kwargs
         )
 
         # Rerank if enabled
@@ -190,9 +200,11 @@ def evaluate_config(
         "num_multi_doc_questions": len(multi_doc_results),
         "avg_context_recall": float(avg_recall),
         "avg_faithfulness": float(avg_faithfulness),
-        "avg_multi_doc_coverage": float(avg_multi_doc_coverage)
-        if avg_multi_doc_coverage is not None
-        else None,
+        "avg_multi_doc_coverage": (
+            float(avg_multi_doc_coverage)
+            if avg_multi_doc_coverage is not None
+            else None
+        ),
         "p50_latency": float(p50_latency),
         "p95_latency": float(p95_latency),
         "results": results,
