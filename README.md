@@ -1,6 +1,6 @@
 # Finance RAG Evaluation System
 
-A production-ready Retrieval-Augmented Generation (RAG) system that answers **grounded, factual questions** about SEC filings (10-K, 10-Q).
+A Retrieval-Augmented Generation (RAG) system that answers **grounded, factual questions** about SEC filings (10-K, 10-Q).
 
 **Problem:** Equity analysts and finance professionals often spend **over 3 hours** manually scanning **100–300 page filings** to locate specific facts (e.g., revenue, risk factors, segment performance).^[1]
 
