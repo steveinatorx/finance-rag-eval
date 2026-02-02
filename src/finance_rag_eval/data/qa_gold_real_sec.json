@@ -2,135 +2,312 @@
   {
     "question": "What was Apple's total net sales for fiscal year 2023?",
     "answer": "Apple's total net sales for fiscal year 2023 were $383,285 million.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's Services net sales for fiscal year 2023?",
     "answer": "Apple's Services net sales for fiscal year 2023 were $85,200 million.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's Products net sales for fiscal year 2023?",
     "answer": "Apple's Products net sales for fiscal year 2023 were $298,085 million.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What is Apple's fiscal year end date?",
     "answer": "Apple's fiscal year ends on September 30, 2023.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What are Apple's main business segments?",
     "answer": "Apple's main business segments are iPhone, Mac, iPad, Wearables/Home/Accessories, and Services.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's total gross margin for fiscal year 2023?",
     "answer": "Apple's total gross margin for fiscal year 2023 was $169,148 million.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's Products gross margin for fiscal year 2023?",
     "answer": "Apple's Products gross margin for fiscal year 2023 was $108,803 million.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's Services gross margin for fiscal year 2023?",
     "answer": "Apple's Services gross margin for fiscal year 2023 was $60,345 million.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's total gross margin percentage for fiscal year 2023?",
     "answer": "Apple's total gross margin percentage for fiscal year 2023 was 44.1%.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's Products gross margin percentage for fiscal year 2023?",
     "answer": "Apple's Products gross margin percentage for fiscal year 2023 was 36.5%.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's Services gross margin percentage for fiscal year 2023?",
     "answer": "Apple's Services gross margin percentage for fiscal year 2023 was 70.8%.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's research and development expense for fiscal year 2023?",
     "answer": "Apple's research and development expense for fiscal year 2023 was $29,915 million, representing 8% of total net sales.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What is Microsoft's fiscal year end date?",
     "answer": "Microsoft's fiscal year ends on June 30, 2023.",
-    "requires_documents": ["MSFT_10K_2023.txt"]
+    "requires_documents": [
+      "MSFT_10K_2023.txt"
+    ]
   },
   {
     "question": "What are Microsoft's main business segments?",
     "answer": "Microsoft's main business segments are Productivity and Business Processes, Intelligent Cloud, and More Personal Computing.",
-    "requires_documents": ["MSFT_10K_2023.txt"]
+    "requires_documents": [
+      "MSFT_10K_2023.txt"
+    ]
   },
   {
     "question": "How do Apple's Services and Products net sales compare in fiscal year 2023?",
     "answer": "In fiscal year 2023, Apple's Products net sales were $298,085 million, while Services net sales were $85,200 million. Products accounted for a significantly larger portion of total net sales.",
     "type": "multi_document",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "How do Apple's Products and Services gross margin percentages compare in fiscal year 2023?",
     "answer": "In fiscal year 2023, Apple's Services gross margin percentage was 70.8%, which is significantly higher than Products gross margin percentage of 36.5%. This reflects the higher profitability of Services compared to Products.",
     "type": "multi_document",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What is the difference between Apple and Microsoft's fiscal year end dates?",
     "answer": "Apple's fiscal year ends on September 30, while Microsoft's fiscal year ends on June 30. Both companies reported fiscal year 2023 results.",
     "type": "multi_document",
-    "requires_documents": ["AAPL_10K_2023.txt", "MSFT_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt",
+      "MSFT_10K_2023.txt"
+    ]
   },
   {
     "question": "What are the business segments for both Apple and Microsoft?",
     "answer": "Apple's business segments are iPhone, Mac, iPad, Wearables/Home/Accessories, and Services. Microsoft's business segments are Productivity and Business Processes, Intelligent Cloud, and More Personal Computing.",
     "type": "multi_document",
-    "requires_documents": ["AAPL_10K_2023.txt", "MSFT_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt",
+      "MSFT_10K_2023.txt"
+    ]
   },
   {
     "question": "What was Apple's total net sales for fiscal year 2024?",
     "answer": "Apple's total net sales for fiscal year 2024 were $391,035 million.",
     "type": "temporal",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "How did Apple's total net sales change from fiscal year 2023 to 2024?",
     "answer": "Apple's total net sales increased from $383,285 million in fiscal year 2023 to $391,035 million in fiscal year 2024, representing an increase of $7,750 million.",
     "type": "temporal",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "How did Apple's Services net sales change from fiscal year 2023 to 2024?",
     "answer": "Apple's Services net sales increased from $85,200 million in fiscal year 2023 to $96,169 million in fiscal year 2024, representing an increase of $10,969 million.",
     "type": "temporal",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "How did Apple's total gross margin change from fiscal year 2023 to 2024?",
     "answer": "Apple's total gross margin increased from $169,148 million in fiscal year 2023 to $180,683 million in fiscal year 2024, representing an increase of $11,535 million.",
     "type": "temporal",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "How did Apple's research and development expense change from fiscal year 2023 to 2024?",
     "answer": "Apple's research and development expense increased from $29,915 million in fiscal year 2023 to $31,370 million in fiscal year 2024, representing a 5% increase.",
     "type": "temporal",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What percentage of Apple's total net sales came from Services in fiscal year 2023?",
     "answer": "Apple's Services net sales of $85,200 million represented approximately 22.2% of total net sales of $383,285 million in fiscal year 2023.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
   },
   {
     "question": "What percentage of Apple's total net sales came from Products in fiscal year 2023?",
     "answer": "Apple's Products net sales of $298,085 million represented approximately 77.8% of total net sales of $383,285 million in fiscal year 2023.",
-    "requires_documents": ["AAPL_10K_2023.txt"]
+    "requires_documents": [
+      "AAPL_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is Alphabet's fiscal year end date?",
+    "answer": "Alphabet's fiscal year ends on December 31, 2023.",
+    "requires_documents": [
+      "GOOGL_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is Amazon's fiscal year end date?",
+    "answer": "Amazon's fiscal year ends on December 31, 2023.",
+    "requires_documents": [
+      "AMZN_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is ExxonMobil's fiscal year end date?",
+    "answer": "ExxonMobil's fiscal year ends on December 31, 2023.",
+    "requires_documents": [
+      "XOM_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are ExxonMobil's main business segments?",
+    "answer": "ExxonMobil's main business segments are Upstream, Product Solutions, and Low Carbon Solutions.",
+    "requires_documents": [
+      "XOM_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is Visa's fiscal year end date?",
+    "answer": "Visa's fiscal year ends on September 30, 2023.",
+    "requires_documents": [
+      "V_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is Tesla's fiscal year end date?",
+    "answer": "Tesla's fiscal year ends on December 31, 2023.",
+    "requires_documents": [
+      "TSLA_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is Walmart's fiscal year end date?",
+    "answer": "Walmart's fiscal year ends on January 31, 2023.",
+    "requires_documents": [
+      "WMT_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are Alphabet's main business segments?",
+    "answer": "Alphabet's main business segments include Google Services, Google Cloud, and Other Bets.",
+    "requires_documents": [
+      "GOOGL_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are Amazon's main business segments?",
+    "answer": "Amazon's main business segments are North America, International, and AWS (Amazon Web Services).",
+    "requires_documents": [
+      "AMZN_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are Tesla's main business segments?",
+    "answer": "Tesla's main business segments are Automotive and Energy Generation and Storage.",
+    "requires_documents": [
+      "TSLA_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are JPMorgan's main business segments?",
+    "answer": "JPMorgan's main business segments are Consumer & Community Banking, Corporate & Investment Bank, Commercial Banking, and Asset & Wealth Management.",
+    "requires_documents": [
+      "JPM_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are Visa's main business segments?",
+    "answer": "Visa's main business segments are Data Processing, Service Fees, International Transaction Fees, and Other Revenues.",
+    "requires_documents": [
+      "V_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are Johnson & Johnson's main business segments?",
+    "answer": "Johnson & Johnson's main business segments are Pharmaceutical, MedTech, and Consumer Health.",
+    "requires_documents": [
+      "JNJ_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are Walmart's main business segments?",
+    "answer": "Walmart's main business segments are Walmart U.S., Walmart International, and Sam's Club.",
+    "requires_documents": [
+      "WMT_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is the difference between Alphabet and Amazon's fiscal year end dates?",
+    "answer": "Alphabet's fiscal year ends on December 31, while Amazon's fiscal year ends on December 31. Both companies reported fiscal year 2023 results.",
+    "type": "multi_document",
+    "requires_documents": [
+      "GOOGL_10K_2023.txt",
+      "AMZN_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What is the difference between Visa and Walmart's fiscal year end dates?",
+    "answer": "Visa's fiscal year ends on September 30, while Walmart's fiscal year ends on January 31. Both companies reported fiscal year 2023 results.",
+    "type": "multi_document",
+    "requires_documents": [
+      "V_10K_2023.txt",
+      "WMT_10K_2023.txt"
+    ]
+  },
+  {
+    "question": "What are the business segments for both Tesla and Amazon?",
+    "answer": "Tesla's main business segments are Automotive and Energy Generation and Storage. Amazon's main business segments are North America, International, and AWS (Amazon Web Services).",
+    "type": "multi_document",
+    "requires_documents": [
+      "TSLA_10K_2023.txt",
+      "AMZN_10K_2023.txt"
+    ]
   }
 ]

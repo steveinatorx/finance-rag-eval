@@ -22,7 +22,7 @@ A production-ready Retrieval-Augmented Generation (RAG) system that answers **gr
 - **Live LLM Support**: Optional enhancement when API keys are provided
   - Set `OPENAI_API_KEY` to enable OpenAI embeddings and/or LLM generation
   - Use `--use-llm` flag in CLI or set `use_llm=True` in code
-- **Comprehensive Evaluation**: Context recall (0.902 on real SEC filings), faithfulness, and latency metrics
+- **Comprehensive Evaluation**: Context recall (0.877 on 10 real SEC filings with 42 questions), faithfulness, and latency metrics
 - **Intrinsic Chunking Metrics**: Evaluate chunking quality without gold sets (coherence, boundaries, structure)
 - **Hyperparameter Sweep**: Systematic evaluation across parameter matrix
 - **Dagster Orchestration**: Asset-based pipeline with visual UI
@@ -83,7 +83,7 @@ EMBEDDING_MODEL=openai pipenv run python -m finance_rag_eval.cli build-index
 
 ### Using Real SEC Filings
 
-The system includes **real SEC filings** in the repository for reproducibility (Apple and Microsoft 10-K filings from 2023). These are public records and are included to ensure anyone cloning the repo gets the exact same documents used for evaluation.
+The system includes **real SEC filings** in the repository for reproducibility (10 companies' 10-K filings from 2023: AAPL, MSFT, GOOGL, AMZN, TSLA, JPM, V, JNJ, WMT, XOM). These are public records and are included to ensure anyone cloning the repo gets the exact same documents used for evaluation.
 
 The system also supports downloading additional **real SEC filings** from EDGAR:
 
@@ -106,7 +106,7 @@ pipenv run python -m finance_rag_eval.cli evaluate \
 
 **Why real filings?** Real SEC filings (100-300+ pages, 500K-2M+ characters) provide much more realistic evaluation than synthetic documents. They demonstrate production readiness and handle actual financial terminology, structure, and complexity.
 
-**Included filings**: The repo includes `AAPL_10K_2023.txt` and `MSFT_10K_2023.txt` in `src/finance_rag_eval/data/real_sec_filings/` for immediate use. A corresponding gold set (`qa_gold_real_sec.json`) is available for evaluation.
+**Included filings**: The repo includes 10 companies' 10-K filings in `src/finance_rag_eval/data/real_sec_filings/` for immediate use. A corresponding gold set (`qa_gold_real_sec.json`) with 42 questions is available for evaluation.
 
 **Note**: SEC rate limits to 10 requests/second, so downloads may take time. Processing large filings (chunking + embedding) also takes longer than synthetic docs.
 
@@ -213,8 +213,8 @@ See `src/finance_rag_eval/eval/chunking_metrics.py` for intrinsic evaluation cap
 
 **Synthetic Documents**: 13 question-answer pairs (8 single-document, 3 multi-document, 2 temporal queries)
 
-**Real SEC Filings**: 25 question-answer pairs covering Apple and Microsoft 10-K filings, including:
-- Single-document queries (revenue, gross margin, segments)
+**Real SEC Filings**: 42 question-answer pairs covering 10 companies across multiple sectors (Tech, Finance, Healthcare, Retail, Energy), including:
+- Single-document queries (revenue, gross margin, segments, fiscal year end dates)
 - Multi-document queries (comparisons across companies)
 - Temporal queries (year-over-year changes)
 
@@ -222,21 +222,26 @@ Includes multi-document coverage metric for complex queries.
 
 ### Sweep Parameters
 
-Evaluates 48 configurations: `chunk_size` [256, 512, 1024], `retriever` [cosine, mmr, hybrid], `top_k` [3, 5, 10, 15], `rerank` [False, True]
+Evaluates 216 configurations: `chunk_size` [256, 512, 1024], `chunk_strategy` [fixed, recursive, structure_aware, semantic], `retriever` [cosine, mmr, hybrid], `top_k` [5, 10, 15], `rerank` [False, True]
 
 ## Results
 
-**Production-Ready Performance** (on real SEC filings):
-- **Context Recall**: 0.902 (90.2%) - exceeds 0.90 target
-- **Faithfulness**: 0.965 (96.5%)
+**Production-Ready Performance** (on 10 real SEC filings, 42 questions):
+- **Context Recall**: 0.877 (87.7%) - strong performance across diverse companies and sectors
+- **Faithfulness**: 0.924 (92.4%)
 - **Multi-doc Coverage**: 1.000 (100%)
-- **Latency**: P50: 0.013s, P95: 0.017s
+- **Latency**: P50: 0.011s, P95: 0.014s
+
+**Evaluation Dataset**:
+- **10 documents**: AAPL, MSFT, GOOGL, AMZN, TSLA, JPM, V, JNJ, WMT, XOM
+- **42 questions**: Single-document (30), multi-document (7), temporal (5)
+- **Multiple sectors**: Tech, Finance, Healthcare, Retail, Energy
 
 **Optimal Configuration**:
 - Chunk Strategy: `structure_aware` (with HTML table extraction)
-- Retriever: `hybrid` (BM25 + Dense, dense_weight=0.3)
-- Top-k: 50
-- Rerank: True
+- Retriever: `hybrid` (BM25 + Dense)
+- Top-k: 5 (balanced) or 10 (maximum recall)
+- Chunk Size: 512
 
 Sweep results saved to `outputs/sweep_results.csv` with metrics (recall, faithfulness, latency). Plots in `outputs/figures/`: faithfulness vs latency, recall vs chunk size, pareto frontier.
 
